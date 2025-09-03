@@ -19,7 +19,6 @@ const Analytics = () => {
   // Data from the healthcare data breaches image
   const years = [2020, 2021, 2022, 2023, 2024, 2025];
   const breaches = [511, 663, 715, 719, 746, 444];
-
   // Data for current vs previous year comparison
   const currentYearBreaches = 444;
   const previousYearBreaches = 746;
@@ -49,8 +48,6 @@ const Analytics = () => {
       },
     ],
   };
-
-  // Chart options
   const options = {
     responsive: true,
     maintainAspectRatio: false,

@@ -195,7 +195,6 @@ export const doctorService = {
     return data;
   },
 
-  // Authenticate doctor with name and verification key
   async authenticateDoctor(name: string, email: string, verificationKey: string) {
     const { data, error } = await supabase
       .from('doctors')
@@ -209,7 +208,6 @@ export const doctorService = {
     return data;
   },
 
-  // Update doctor information
   async updateDoctor(id: string, updates: any) {
     const { data, error } = await supabase
       .from('doctors')
@@ -222,13 +220,11 @@ export const doctorService = {
     return data;
   },
 
-  // Get recent patients for a doctor
   async getDoctorPatients(doctorId: string) {
-    // First check if the table exists
     try {
       await supabase.from('patient_doctor_access').select('*').limit(1);
     } catch (tableError: any) {
-      console.warn("patient_doctor_access table doesn't exist, returning empty array");
+      console.warn("patient_doctor_access table doesn't exist, returning empty array", tableError);
       return [];
     }
     
@@ -243,12 +239,12 @@ export const doctorService = {
       .limit(10);
     
     if (error) {
-      console.error("Error fetching doctor patients:", error);
+      console.error("Error fetching doctor patients:", JSON.stringify(error, null, 2));
+      console.error("Doctor ID used in query:", doctorId);
       return [];
     }
     return data;
   },
-
   // Add patient access for doctor
   async addPatientAccess(doctorId: string, patientId: string) {
     console.log("Adding patient access:", { doctorId, patientId });

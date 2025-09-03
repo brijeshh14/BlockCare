@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   User,
@@ -16,6 +17,7 @@ import {
   EyeOff,
   Shield,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import { Footer } from "@/components/ui/footer";
 import { useAuth } from "@/hooks/supabase/useAuth";
@@ -47,6 +49,7 @@ const PatientRegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [digilockerLoading, setDigilockerLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -162,6 +165,24 @@ const PatientRegisterPage: React.FC = () => {
     }
   };
 
+  const handleDigiLockerRegister = async () => {
+    setDigilockerLoading(true);
+    setError(null);
+
+    try {
+      // Simulate DigiLocker authentication and auto-populate form
+      await new Promise((r) => setTimeout(r, 2000));
+
+      // In real implementation, this would fetch data from DigiLocker
+      // and create the account automatically
+      router.push("/patient/dashboard");
+    } catch (err: any) {
+      setError("DigiLocker registration failed. Please try again.");
+    } finally {
+      setDigilockerLoading(false);
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -209,9 +230,10 @@ const PatientRegisterPage: React.FC = () => {
             </p>
           </div>
 
+          {/* Manual Registration Form */}
           <form
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-border bg-card p-6 shadow-sm"
+            className="rounded-2xl border border-border bg-card p-6 shadow-sm mb-6"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Full Name */}
@@ -503,6 +525,59 @@ const PatientRegisterPage: React.FC = () => {
               </Link>
             </p>
           </form>
+
+          {/* OR Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-2 text-muted-foreground">
+                OR
+              </span>
+            </div>
+          </div>
+
+          {/* DigiLocker Registration Option */}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="text-center mb-4">
+              <div className="mx-auto w-16 h-16 mb-3 relative">
+                <Image
+                  src="/icons/digilocker.svg"
+                  alt="DigiLocker"
+                  width={64}
+                  height={64}
+                  className="mx-auto"
+                />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Register with DigiLocker
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Automatically create your account using verified DigiLocker
+                credentials
+              </p>
+            </div>
+
+            <button
+              onClick={handleDigiLockerRegister}
+              disabled={digilockerLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            >
+              {digilockerLoading ? (
+                "Connecting..."
+              ) : (
+                <>
+                  Continue with DigiLocker
+                  <ExternalLink className="h-4 w-4" />
+                </>
+              )}
+            </button>
+
+            <p className="mt-3 text-xs text-center text-muted-foreground">
+              Your personal information will be securely fetched from DigiLocker
+            </p>
+          </div>
         </div>
       </main>
 

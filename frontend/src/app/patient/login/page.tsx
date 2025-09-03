@@ -29,10 +29,8 @@ const PatientLoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [digilockerLoading, setDigilockerLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loginMethod, setLoginMethod] = useState<"email" | "digilocker">(
-    "email"
-  );
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   // Check for registration success message
@@ -44,10 +42,7 @@ const PatientLoginPage: React.FC = () => {
   }, [searchParams]);
 
   const isFormValid = () => {
-    return (
-      loginMethod === "digilocker" ||
-      (isValidEmail(email) && password.length >= 6)
-    );
+    return isValidEmail(email) && password.length >= 6;
   };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -103,7 +98,7 @@ const PatientLoginPage: React.FC = () => {
   };
 
   const handleDigiLockerLogin = async () => {
-    setLoading(true);
+    setDigilockerLoading(true);
     setError(null);
 
     try {
@@ -114,7 +109,7 @@ const PatientLoginPage: React.FC = () => {
     } catch (err: any) {
       setError("DigiLocker authentication failed. Please try again.");
     } finally {
-      setLoading(false);
+      setDigilockerLoading(false);
     }
   };
 
@@ -160,161 +155,143 @@ const PatientLoginPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Login Method Toggle */}
-          <div className="mb-6 flex rounded-lg border border-border overflow-hidden">
+          {/* Email & Password Login Form */}
+          <form
+            onSubmit={handleEmailLogin}
+            className="rounded-2xl border border-border bg-card p-6 shadow-sm mb-6"
+          >
+            {/* Email */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Email Address
+              </label>
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="Enter your email address"
+                  className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Password
+              </label>
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="Enter your password"
+                  className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 hover:bg-muted rounded transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-sm text-destructive">{error}</p>
+              </div>
+            )}
+
+            {/* Sign In Button */}
             <button
-              onClick={() => setLoginMethod("email")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                loginMethod === "email"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card hover:bg-muted text-foreground"
-              }`}
+              type="submit"
+              disabled={!isFormValid() || loading}
+              className="w-full mb-4 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
             >
-              Email & Password
+              {loading ? "Signing in..." : "Sign In"}
             </button>
-            <button
-              onClick={() => setLoginMethod("digilocker")}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                loginMethod === "digilocker"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card hover:bg-muted text-foreground"
-              }`}
-            >
-              DigiLocker
-            </button>
+
+            {/* Forgot Password */}
+            <div className="text-center">
+              <Link
+                href="/patient/forgot-password"
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+          </form>
+
+          {/* OR Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-background px-2 text-muted-foreground">
+                OR
+              </span>
+            </div>
           </div>
 
-          {loginMethod === "email" ? (
-            <form
-              onSubmit={handleEmailLogin}
-              className="rounded-2xl border border-border bg-card p-6 shadow-sm"
-            >
-              {/* Email */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Email Address
-                </label>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError(null);
-                    }}
-                    placeholder="Enter your email address"
-                    className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
-                    required
-                  />
-                </div>
+          {/* DigiLocker Login Option */}
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="text-center mb-4">
+              <div className="mx-auto w-16 h-16 mb-3 relative">
+                <Image
+                  src="/icons/digilocker.svg"
+                  alt="DigiLocker"
+                  width={64}
+                  height={64}
+                  className="mx-auto"
+                />
               </div>
-
-              {/* Password */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Password
-                </label>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setError(null);
-                    }}
-                    placeholder="Enter your password"
-                    className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="p-1 hover:bg-muted rounded transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
-
-              {/* Sign In Button */}
-              <button
-                type="submit"
-                disabled={!isFormValid() || loading}
-                className="w-full mb-4 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-              >
-                {loading ? "Signing in..." : "Sign In"}
-              </button>
-
-              {/* Forgot Password */}
-              <div className="text-center">
-                <Link
-                  href="/patient/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-            </form>
-          ) : (
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <div className="text-center mb-6">
-                <div className="mx-auto w-20 h-20 mb-4 relative">
-                  <Image
-                    src="/icons/digilocker.svg"
-                    alt="DigiLocker"
-                    width={80}
-                    height={80}
-                    className="mx-auto"
-                  />
-                </div>
-                <h3 className="text-xl font-bold text-foreground">
-                  DigiLocker Login
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Securely access your medical records using your DigiLocker
-                  account
-                </p>
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
-
-              <button
-                onClick={handleDigiLockerLogin}
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-              >
-                {loading ? (
-                  "Connecting..."
-                ) : (
-                  <>
-                    Continue with DigiLocker
-                    <ExternalLink className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-
-              <p className="mt-4 text-xs text-center text-muted-foreground">
-                You will be redirected to DigiLocker for secure authentication
+              <h3 className="text-lg font-semibold text-foreground">
+                Login with DigiLocker
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Securely access your medical records using your DigiLocker
+                account
               </p>
             </div>
-          )}
+
+            <button
+              onClick={handleDigiLockerLogin}
+              disabled={digilockerLoading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+            >
+              {digilockerLoading ? (
+                "Connecting..."
+              ) : (
+                <>
+                  Continue with DigiLocker
+                  <ExternalLink className="h-4 w-4" />
+                </>
+              )}
+            </button>
+
+            <p className="mt-3 text-xs text-center text-muted-foreground">
+              You will be redirected to DigiLocker for secure authentication
+            </p>
+          </div>
 
           {/* Registration Link */}
           <div className="mt-6 text-center">

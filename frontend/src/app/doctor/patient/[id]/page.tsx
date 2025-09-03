@@ -15,9 +15,12 @@ import {
   MapPin,
   Calendar,
   FileText,
-  Download,
+  Eye,
   AlertTriangle,
   Stethoscope,
+  UserCircle,
+  Activity,
+  Loader2,
 } from "lucide-react";
 
 interface Patient {
@@ -53,6 +56,9 @@ export default function PatientDetailsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadingDocumentId, setLoadingDocumentId] = useState<string | null>(
+    null
+  );
 
   const patientId = params.id as string;
 
@@ -88,35 +94,64 @@ export default function PatientDetailsPage() {
     }
   };
 
-  const handleDownloadDocument = async (document: Document) => {
+  const handleViewDocument = async (document: Document) => {
     try {
-      // In a real implementation, you would download from Supabase Storage
-      console.log("Downloading document:", document.name);
-      // For now, just show an alert
+      console.log("Viewing document:", document.name);
+      setLoadingDocumentId(document.id);
+
+      if (!document.path) {
+        throw new Error("Document path is missing");
+      }
+
+      // Get the document URL from the storage service
+      const { storageService } = await import("@/lib/supabase/storage");
+      const fileUrl = await storageService.getFileUrl(document.path);
+
+      if (!fileUrl) {
+        throw new Error("Could not retrieve document URL");
+      }
+
+      // Open the document in a new tab/window
+      const newWindow = window.open(fileUrl, "_blank", "noopener,noreferrer");
+
+      if (!newWindow) {
+        throw new Error(
+          "Could not open document. Please check if pop-ups are blocked in your browser."
+        );
+      }
+    } catch (error: any) {
+      console.error("Error viewing document:", error);
       alert(
-        `Download functionality for ${document.name} would be implemented here.`
+        `Error opening document: ${document.name}. ${
+          error.message || "Please try again later."
+        }`
       );
-    } catch (error) {
-      console.error("Error downloading document:", error);
+    } finally {
+      setLoadingDocumentId(null);
     }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-4 border-muted border-t-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Access Error</h1>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={() => router.push("/doctor/dashboard")}>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card rounded-lg shadow-2xl p-8 text-center max-w-md w-full">
+          <AlertTriangle className="h-16 w-16 text-destructive mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2 text-foreground">
+            Access Error
+          </h1>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <Button
+            onClick={() => router.push("/doctor/dashboard")}
+            className="w-full"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -126,14 +161,19 @@ export default function PatientDetailsPage() {
 
   if (!patient) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card rounded-lg shadow-2xl p-8 text-center max-w-md w-full">
           <User className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Patient Not Found</h1>
-          <p className="text-muted-foreground mb-4">
+          <h1 className="text-2xl font-bold mb-2 text-foreground">
+            Patient Not Found
+          </h1>
+          <p className="text-muted-foreground mb-6">
             The requested patient could not be found.
           </p>
-          <Button onClick={() => router.push("/doctor/dashboard")}>
+          <Button
+            onClick={() => router.push("/doctor/dashboard")}
+            className="w-full"
+          >
             Back to Dashboard
           </Button>
         </div>
@@ -144,29 +184,30 @@ export default function PatientDetailsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-border">
+      <div className="bg-card shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/doctor/dashboard")}
-                className="p-0 h-auto font-normal text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </div>
+          <div className="flex justify-between items-center h-20">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/doctor/dashboard")}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Button>
 
-            <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Stethoscope className="h-5 w-5 text-primary" />
+            <div className="flex items-center space-x-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Stethoscope className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-foreground">
+                <h1 className="text-2xl font-semibold text-foreground">
                   Patient Details
                 </h1>
+                <p className="text-sm text-muted-foreground">
+                  Comprehensive medical profile
+                </p>
               </div>
             </div>
           </div>
@@ -177,93 +218,153 @@ export default function PatientDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Patient Information */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
-                  <span>Patient Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground mb-2">
-                      {patient.name}
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>Age: {patient.age} years</span>
-                      </div>
-                      {patient.email && (
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Mail className="h-4 w-4" />
-                          <span>{patient.email}</span>
-                        </div>
-                      )}
-                      {patient.phone && (
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span>{patient.phone}</span>
-                        </div>
-                      )}
-                      {patient.address && (
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{patient.address}</span>
-                        </div>
-                      )}
-                    </div>
+          <div className="lg:col-span-2 space-y-8">
+            {/* Patient Profile Header */}
+            <Card className="shadow-xl">
+              <CardContent className="p-8">
+                <div className="flex items-start space-x-6 mb-8">
+                  <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center shadow-lg">
+                    <UserCircle className="h-12 w-12 text-primary" />
                   </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Gender
-                      </label>
-                      <p className="text-sm">{patient.gender}</p>
-                    </div>
-                    {patient.bloodtype && (
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Blood Type
-                        </label>
-                        <Badge variant="outline" className="ml-2">
-                          {patient.bloodtype}
+                  <div className="flex-1">
+                    <h2 className="text-4xl font-bold text-foreground mb-3">
+                      {patient.name}
+                    </h2>
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        {patient.gender}
+                      </Badge>
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        Age {patient.age}
+                      </Badge>
+                      {patient.bloodtype && (
+                        <Badge
+                          variant="destructive"
+                          className="text-sm px-3 py-1"
+                        >
+                          Blood Type {patient.bloodtype}
                         </Badge>
-                      </div>
-                    )}
-                    {patient.condition && (
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Condition
-                        </label>
-                        <p className="text-sm">{patient.condition}</p>
-                      </div>
-                    )}
-                    {patient.emergencycontact && (
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">
-                          Emergency Contact
-                        </label>
-                        <p className="text-sm">{patient.emergencycontact}</p>
-                      </div>
-                    )}
+                      )}
+                      {patient.condition && (
+                        <Badge variant="outline" className="text-sm px-3 py-1">
+                          {patient.condition}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Allergies */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Contact Information */}
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center">
+                      <Phone className="h-5 w-5 mr-2 text-primary" />
+                      Contact Information
+                    </h3>
+                    <div className="space-y-4">
+                      {patient.email && (
+                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Mail className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Email
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {patient.email}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {patient.phone && (
+                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Phone className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Phone
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {patient.phone}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {patient.address && (
+                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <MapPin className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">
+                              Address
+                            </p>
+                            <p className="font-medium text-foreground">
+                              {patient.address}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Medical Information */}
+                  <div className="space-y-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center">
+                      <Activity className="h-5 w-5 mr-2 text-primary" />
+                      Medical Information
+                    </h3>
+                    <div className="space-y-4">
+                      {patient.emergencycontact && (
+                        <div className="p-4 rounded-lg bg-accent/50">
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Emergency Contact
+                          </p>
+                          <p className="font-semibold text-foreground text-lg">
+                            {patient.emergencycontact}
+                          </p>
+                        </div>
+                      )}
+                      <div className="p-4 rounded-lg bg-accent/50">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Patient ID
+                        </p>
+                        <p className="font-mono text-foreground">
+                          {patient.id.slice(0, 8)}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-accent/50">
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Registration Date
+                        </p>
+                        <p className="font-medium text-foreground">
+                          {patient.created_at
+                            ? new Date(patient.created_at).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Allergies Alert */}
                 {patient.allergies && patient.allergies.length > 0 && (
-                  <div className="mt-6 p-4 bg-red-50 rounded-lg">
-                    <div className="flex items-center space-x-2 text-red-600 mb-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <span className="font-medium">Allergies</span>
+                  <div className="mt-8 p-6 bg-destructive/10 rounded-lg">
+                    <div className="flex items-center space-x-2 text-destructive mb-4">
+                      <AlertTriangle className="h-5 w-5" />
+                      <span className="font-semibold text-lg">
+                        Known Allergies
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {patient.allergies.map((allergy, index) => (
-                        <Badge key={index} variant="destructive">
+                        <Badge
+                          key={index}
+                          variant="destructive"
+                          className="text-sm"
+                        >
                           {allergy}
                         </Badge>
                       ))}
@@ -274,49 +375,72 @@ export default function PatientDetailsPage() {
             </Card>
 
             {/* Medical Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
+            <Card className="shadow-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="flex items-center space-x-3 text-2xl">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
                   <span>Medical Documents</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {documents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="text-center py-16">
+                    <div className="h-20 w-20 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-6">
+                      <FileText className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-medium text-foreground mb-2">
+                      No Documents Available
+                    </h3>
                     <p className="text-muted-foreground">
-                      No documents available
+                      Medical documents will appear here once uploaded
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {documents.map((document) => (
                       <div
                         key={document.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-between p-6 bg-accent/20 rounded-lg hover:bg-accent/40 transition-colors duration-200"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <FileText className="h-5 w-5 text-primary" />
+                        <div className="flex items-center space-x-4">
+                          <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <FileText className="h-7 w-7 text-primary" />
                           </div>
                           <div>
-                            <p className="font-medium text-foreground">
+                            <h4 className="font-semibold text-foreground text-lg mb-1">
                               {document.name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {document.type} •{" "}
-                              {(document.size / 1024).toFixed(1)} KB
-                            </p>
+                            </h4>
+                            <div className="flex items-center space-x-3 text-muted-foreground">
+                              <span className="text-sm">{document.type}</span>
+                              <span className="text-sm">•</span>
+                              <span className="text-sm">
+                                {(document.size / 1024).toFixed(1)} KB
+                              </span>
+                              <span className="text-sm">•</span>
+                              <span className="text-sm">
+                                {new Date(
+                                  document.created_at
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <Button
                           variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadDocument(document)}
+                          onClick={() => handleViewDocument(document)}
+                          disabled={loadingDocumentId === document.id}
+                          className="shadow-md hover:shadow-lg transition-all"
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
+                          {loadingDocumentId === document.id ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Eye className="h-4 w-4 mr-2" />
+                          )}
+                          {loadingDocumentId === document.id
+                            ? "Opening..."
+                            : "View"}
                         </Button>
                       </div>
                     ))}
@@ -326,44 +450,45 @@ export default function PatientDetailsPage() {
             </Card>
           </div>
 
-          {/* Quick Actions */}
-          <div>
-            <Card>
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Quick Actions */}
+            <Card className="shadow-xl">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-xl">Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
+              <CardContent className="space-y-4">
+                <Button className="w-full h-12 text-base" size="lg">
+                  <FileText className="h-5 w-5 mr-2" />
                   Add Medical Note
                 </Button>
-                <Button className="w-full" variant="outline">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Appointment
-                </Button>
-                <Button className="w-full" variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Records
+                <Button
+                  variant="outline"
+                  className="w-full h-12 text-base"
+                  size="lg"
+                >
+                  <UserCircle className="h-5 w-5 mr-2" />
+                  View Profile
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Patient Stats */}
-            <Card className="mt-6">
+            {/* Statistics */}
+            <Card className="shadow-xl">
               <CardHeader>
-                <CardTitle>Record Summary</CardTitle>
+                <CardTitle className="text-xl">Record Summary</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
+              <CardContent className="space-y-6">
+                <div className="text-center p-6 bg-primary/5 rounded-lg">
+                  <div className="text-4xl font-bold text-primary mb-2">
                     {documents.length}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
                     Medical Documents
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">
+                <div className="text-center p-6 bg-accent/50 rounded-lg">
+                  <div className="text-4xl font-bold text-foreground mb-2">
                     {patient.created_at
                       ? Math.floor(
                           (new Date().getTime() -
@@ -372,9 +497,24 @@ export default function PatientDetailsPage() {
                         )
                       : "N/A"}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
                     Days in System
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Status */}
+            <Card className="shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-xl">Patient Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center space-x-3 p-4 bg-accent/50 rounded-lg">
+                  <div className="h-4 w-4 rounded-full bg-green-500"></div>
+                  <span className="font-medium text-foreground">
+                    Active Patient
+                  </span>
                 </div>
               </CardContent>
             </Card>
