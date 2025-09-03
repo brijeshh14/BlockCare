@@ -95,7 +95,7 @@ const DoctorRegisterPage: React.FC = () => {
       setSuccess(true);
 
       setTimeout(() => {
-        router.push("/login/doctor?registered=true");
+        router.push("/doctor/login?registered=true");
       }, 2000);
     } catch (err: any) {
       console.error("Doctor registration error:", err);
@@ -325,7 +325,7 @@ const DoctorRegisterPage: React.FC = () => {
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link
-                href="/login/doctor"
+                href="/doctor/login"
                 className="text-primary hover:underline"
               >
                 Sign in here

@@ -25,6 +25,7 @@ interface UploadComponentProps {
   showCamera?: boolean;
   showDragDrop?: boolean;
   showIPFSUpload?: boolean;
+  showSupabaseUpload?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -51,7 +52,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   maxSize = 10,
   showCamera = true,
   showDragDrop = true,
-  showIPFSUpload = false,
+  showIPFSUpload = true,
+  showSupabaseUpload = true,
   className,
   children,
 }) => {
@@ -140,6 +142,13 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     }
   };
 
+  // Trigger file input
+  const triggerFileInput = useCallback(() => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, []);
+
   // Start camera
   const startCamera = async () => {
     try {
@@ -203,6 +212,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     if (!selectedFile || !patientId) return;
 
     try {
+      setUploadError("");
+
       // Upload to Supabase
       const result = await uploadFile(patientId, selectedFile, {
         description: "Uploaded via web interface",
@@ -223,6 +234,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
         );
       }
     } catch (err: any) {
+      console.error("Supabase upload error:", err);
       setUploadError(err.message || "Upload failed. Please try again.");
     }
   };
@@ -254,13 +266,22 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
           onIPFSUploadComplete(result.ipfsHash, result.ipfsUrl);
         }
 
-        // Clear the selected file after successful upload
-        removeFile();
+        // Don't clear the selected file immediately, let user see the result
+        // User can manually upload another file using the "Upload Another File" button
       } else {
-        setUploadError(result.error || "IPFS upload failed. Please try again.");
+        setUploadError(
+          result.error ||
+            result.details ||
+            "IPFS upload failed. Please try again."
+        );
       }
     } catch (err: any) {
-      setUploadError(`IPFS upload error: ${err.message || "Unknown error"}`);
+      console.error("IPFS upload error:", err);
+      setUploadError(
+        `IPFS upload error: ${
+          err.message || "Network error. Please check if IPFS node is running."
+        }`
+      );
     } finally {
       setIsIPFSUploading(false);
     }
@@ -347,6 +368,15 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
           {/* Hidden canvas for photo capture */}
           <canvas ref={canvasRef} style={{ display: "none" }} />
 
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={acceptedTypes.join(",")}
+            onChange={handleInputChange}
+            className="sr-only"
+          />
+
           {/* Error Display */}
           {(uploadError || error) && (
             <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -384,35 +414,50 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
           {ipfsResult && (
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Cloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h4 className="font-medium text-blue-800 dark:text-blue-200">
-                    IPFS Upload Successful!
-                  </h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Cloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200">
+                      IPFS Upload Successful!
+                    </h4>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setIpfsResult(null);
+                      setSelectedFile(null);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-200 hover:bg-blue-100 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-800/30"
+                  >
+                    Upload Another File
+                  </Button>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="font-medium text-blue-700 dark:text-blue-300">
                       IPFS Hash:
                     </span>
-                    <code className="block mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs break-all">
+                    <code className="block mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs break-all font-mono">
                       {ipfsResult.ipfsHash}
                     </code>
                   </div>
-                  <p className="text-blue-600 dark:text-blue-400">
-                    <span className="font-medium">File:</span>{" "}
-                    {ipfsResult.fileName}
-                  </p>
-                  <p className="text-blue-600 dark:text-blue-400">
-                    <span className="font-medium">Size:</span>{" "}
-                    {ipfsResult.size?.toLocaleString()} bytes
-                  </p>
+                  <div className="flex flex-wrap gap-4">
+                    <p className="text-blue-600 dark:text-blue-400">
+                      <span className="font-medium">File:</span>{" "}
+                      {ipfsResult.fileName}
+                    </p>
+                    <p className="text-blue-600 dark:text-blue-400">
+                      <span className="font-medium">Size:</span>{" "}
+                      {ipfsResult.size?.toLocaleString()} bytes
+                    </p>
+                  </div>
                   {ipfsResult.ipfsUrl && (
                     <a
                       href={ipfsResult.ipfsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-blue-600 hover:underline"
+                      className="inline-flex items-center text-blue-600 hover:underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
                     >
                       View on IPFS Gateway →
                     </a>
@@ -479,16 +524,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
               onDragOver={showDragDrop ? handleDragOver : undefined}
               onDragLeave={showDragDrop ? handleDragLeave : undefined}
               onDrop={showDragDrop ? handleDrop : undefined}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={showDragDrop ? triggerFileInput : undefined}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={acceptedTypes.join(",")}
-                onChange={handleInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-
               <div className="space-y-4">
                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                   <Upload className="h-8 w-8 text-primary" />
@@ -513,7 +550,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                     className="font-semibold"
                     onClick={(e) => {
                       e.stopPropagation();
-                      fileInputRef.current?.click();
+                      triggerFileInput();
                     }}
                   >
                     <Upload className="h-4 w-4 mr-2" />
@@ -541,11 +578,18 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
           )}
 
           {/* Upload Buttons */}
-          {selectedFile && (
+          {selectedFile && !ipfsResult && (
             <div className="flex flex-col space-y-3">
-              {/* Supabase Upload Button (only if patientId is provided) */}
-              {patientId && (
-                <div className="flex justify-center">
+              {/* Title */}
+              <div className="text-center">
+                <h4 className="font-medium text-foreground mb-4">
+                  Choose Upload Destination:
+                </h4>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {/* Supabase Upload Button */}
+                {showSupabaseUpload && patientId && (
                   <Button
                     onClick={handleUpload}
                     disabled={isUploading || isIPFSUploading}
@@ -555,7 +599,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                     {isUploading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
-                        Uploading...
+                        Uploading to Database...
                       </>
                     ) : (
                       <>
@@ -564,17 +608,15 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                       </>
                     )}
                   </Button>
-                </div>
-              )}
+                )}
 
-              {/* IPFS Upload Button (if enabled) */}
-              {showIPFSUpload && (
-                <div className="flex justify-center">
+                {/* IPFS Upload Button */}
+                {showIPFSUpload && (
                   <Button
                     onClick={handleIPFSUpload}
                     disabled={isUploading || isIPFSUploading}
                     variant="outline"
-                    className="font-semibold px-8 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20"
+                    className="font-semibold px-8 border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40"
                     size="lg"
                   >
                     {isIPFSUploading ? (
@@ -589,17 +631,23 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                       </>
                     )}
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Divider if both buttons are shown */}
-              {patientId && showIPFSUpload && (
-                <div className="flex items-center">
-                  <div className="flex-1 border-t border-border"></div>
-                  <span className="px-3 text-sm text-muted-foreground">or</span>
-                  <div className="flex-1 border-t border-border"></div>
-                </div>
-              )}
+              {/* Helper Text */}
+              <div className="text-center space-y-2">
+                {showSupabaseUpload && showIPFSUpload && (
+                  <p className="text-xs text-muted-foreground">
+                    Database: Secure, private storage • IPFS: Decentralized,
+                    blockchain-ready
+                  </p>
+                )}
+                {!patientId && showSupabaseUpload && (
+                  <p className="text-xs text-muted-foreground">
+                    Patient ID required for database upload
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
