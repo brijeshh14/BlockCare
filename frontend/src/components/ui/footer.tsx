@@ -38,13 +38,16 @@ export function Footer({ className, ...props }: FooterProps) {
             </p>
 
             <div className="flex gap-2">
-              <Link
-                href="https://github.com/AdarsHH30/BlockCare"
-                className="p-2 rounded-md bg-muted/50 hover:bg-primary/10 transition-colors"
-                aria-label="GitHub"
-              >
-                <Github className="h-4 w-4 text-muted-foreground hover:text-primary" />
-              </Link>
+                <Link
+                  href="https://github.com/AdarsHH30/BlockCare"
+                  className="p-2 rounded-md bg-muted/50 hover:bg-primary/10 transition-colors mt-1"
+                  aria-label="GitHub"
+                >
+                  
+                  <div className="flex items-center gap-2 ">
+                    <Github className="h-4 w-4 text-muted-foreground hover:text-primary "/>
+                  </div>
+                </Link>
               {/* <Link
                 href="#"
                 className="p-2 rounded-md bg-muted/50 hover:bg-primary/10 transition-colors"
@@ -62,7 +65,7 @@ export function Footer({ className, ...props }: FooterProps) {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <h4 className="text-sm font-semibold text-foreground mb-3">
               Services
             </h4>
@@ -83,9 +86,9 @@ export function Footer({ className, ...props }: FooterProps) {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
-          <div>
+          {/* <div>
             <h4 className="text-sm font-semibold text-foreground mb-3">
               Company
             </h4>
@@ -103,7 +106,7 @@ export function Footer({ className, ...props }: FooterProps) {
                 )
               )}
             </ul>
-          </div>
+          </div> */}
         </div>
 
         {/* Bottom Section */}
@@ -114,10 +117,10 @@ export function Footer({ className, ...props }: FooterProps) {
                 &copy; {new Date().getFullYear()} BlockCare. All rights
                 reserved.
               </p>
-              <div className="flex items-center gap-2 text-xs">
+              {/* <div className="flex items-center gap-2 text-xs">
                 <Shield className="h-3 w-3" />
                 <span>HIPAA Compliant</span>
-              </div>
+              </div> */}
             </div>
 
             <div className="flex items-center gap-4 text-sm">
