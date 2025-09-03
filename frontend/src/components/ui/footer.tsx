@@ -45,7 +45,7 @@ export function Footer({ className, ...props }: FooterProps) {
               >
                 <Github className="h-4 w-4 text-muted-foreground hover:text-primary" />
               </Link>
-              <Link
+              {/* <Link
                 href="#"
                 className="p-2 rounded-md bg-muted/50 hover:bg-primary/10 transition-colors"
                 aria-label="LinkedIn"
@@ -58,7 +58,7 @@ export function Footer({ className, ...props }: FooterProps) {
                 aria-label="Twitter"
               >
                 <Twitter className="h-4 w-4 text-muted-foreground hover:text-primary" />
-              </Link>
+              </Link> */}
             </div>
           </div>
 
