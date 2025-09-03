@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   FileIcon,
   CheckCircle,
+  Cloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,10 +19,12 @@ import { useFileUpload } from "@/hooks/supabase";
 interface UploadComponentProps {
   patientId?: string;
   onUploadComplete?: (document: any) => void;
+  onIPFSUploadComplete?: (ipfsHash: string, ipfsUrl: string) => void;
   acceptedTypes?: string[];
   maxSize?: number; // in MB
   showCamera?: boolean;
   showDragDrop?: boolean;
+  showIPFSUpload?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
@@ -30,13 +33,25 @@ interface UploadedFile extends File {
   preview?: string;
 }
 
+interface IPFSUploadResult {
+  success: boolean;
+  ipfsHash?: string;
+  fileName?: string;
+  size?: number;
+  ipfsUrl?: string;
+  error?: string;
+  details?: string;
+}
+
 const UploadComponent: React.FC<UploadComponentProps> = ({
   patientId,
   onUploadComplete,
+  onIPFSUploadComplete,
   acceptedTypes = [".pdf", ".jpg", ".jpeg", ".png"],
   maxSize = 10,
   showCamera = true,
   showDragDrop = true,
+  showIPFSUpload = false,
   className,
   children,
 }) => {
@@ -44,6 +59,8 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
+  const [isIPFSUploading, setIsIPFSUploading] = useState(false);
+  const [ipfsResult, setIpfsResult] = useState<IPFSUploadResult | null>(null);
 
   const { uploadFile, isUploading, progress, error } = useFileUpload();
 
@@ -210,12 +227,52 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
     }
   };
 
+  // Handle upload to IPFS
+  const handleIPFSUpload = async () => {
+    if (!selectedFile) return;
+
+    setIsIPFSUploading(true);
+    setUploadError("");
+    setIpfsResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await fetch("/api/ipfs", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result: IPFSUploadResult = await response.json();
+
+      if (result.success && result.ipfsHash) {
+        setIpfsResult(result);
+
+        // Call callback function with IPFS hash for blockchain interaction
+        if (onIPFSUploadComplete && result.ipfsHash && result.ipfsUrl) {
+          onIPFSUploadComplete(result.ipfsHash, result.ipfsUrl);
+        }
+
+        // Clear the selected file after successful upload
+        removeFile();
+      } else {
+        setUploadError(result.error || "IPFS upload failed. Please try again.");
+      }
+    } catch (err: any) {
+      setUploadError(`IPFS upload error: ${err.message || "Unknown error"}`);
+    } finally {
+      setIsIPFSUploading(false);
+    }
+  };
+
   // Remove selected file
   const removeFile = () => {
     if (selectedFile?.preview) {
       URL.revokeObjectURL(selectedFile.preview);
     }
     setSelectedFile(null);
+    setIpfsResult(null); // Clear IPFS result too
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -298,17 +355,69 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
           )}
 
           {/* Upload Progress */}
-          {isUploading && (
+          {(isUploading || isIPFSUploading) && (
             <div className="mb-4">
               <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Uploading...</span>
-                <span className="text-sm font-medium">{progress}%</span>
+                <span className="text-sm font-medium">
+                  {isIPFSUploading ? "Uploading to IPFS..." : "Uploading..."}
+                </span>
+                <span className="text-sm font-medium">
+                  {isIPFSUploading ? "Processing..." : `${progress}%`}
+                </span>
               </div>
               <div className="w-full bg-accent h-2 rounded-full overflow-hidden">
                 <div
                   className="bg-primary h-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+                  style={{
+                    width: isIPFSUploading ? "50%" : `${progress}%`,
+                    ...(isIPFSUploading && {
+                      animation:
+                        "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                    }),
+                  }}
                 ></div>
+              </div>
+            </div>
+          )}
+
+          {/* IPFS Upload Result */}
+          {ipfsResult && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Cloud className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200">
+                    IPFS Upload Successful!
+                  </h4>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium text-blue-700 dark:text-blue-300">
+                      IPFS Hash:
+                    </span>
+                    <code className="block mt-1 p-2 bg-white dark:bg-gray-800 rounded text-xs break-all">
+                      {ipfsResult.ipfsHash}
+                    </code>
+                  </div>
+                  <p className="text-blue-600 dark:text-blue-400">
+                    <span className="font-medium">File:</span>{" "}
+                    {ipfsResult.fileName}
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-400">
+                    <span className="font-medium">Size:</span>{" "}
+                    {ipfsResult.size?.toLocaleString()} bytes
+                  </p>
+                  {ipfsResult.ipfsUrl && (
+                    <a
+                      href={ipfsResult.ipfsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-blue-600 hover:underline"
+                    >
+                      View on IPFS Gateway →
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -431,27 +540,66 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
             </div>
           )}
 
-          {/* Upload Button */}
-          {selectedFile && patientId && (
-            <div className="flex justify-center">
-              <Button
-                onClick={handleUpload}
-                disabled={isUploading}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8"
-                size="lg"
-              >
-                {isUploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Now
-                  </>
-                )}
-              </Button>
+          {/* Upload Buttons */}
+          {selectedFile && (
+            <div className="flex flex-col space-y-3">
+              {/* Supabase Upload Button (only if patientId is provided) */}
+              {patientId && (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={handleUpload}
+                    disabled={isUploading || isIPFSUploading}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-8"
+                    size="lg"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-foreground border-t-transparent mr-2" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload to Database
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* IPFS Upload Button (if enabled) */}
+              {showIPFSUpload && (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={handleIPFSUpload}
+                    disabled={isUploading || isIPFSUploading}
+                    variant="outline"
+                    className="font-semibold px-8 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20"
+                    size="lg"
+                  >
+                    {isIPFSUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-700 border-t-transparent mr-2" />
+                        Uploading to IPFS...
+                      </>
+                    ) : (
+                      <>
+                        <Cloud className="h-4 w-4 mr-2" />
+                        Upload to IPFS
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {/* Divider if both buttons are shown */}
+              {patientId && showIPFSUpload && (
+                <div className="flex items-center">
+                  <div className="flex-1 border-t border-border"></div>
+                  <span className="px-3 text-sm text-muted-foreground">or</span>
+                  <div className="flex-1 border-t border-border"></div>
+                </div>
+              )}
             </div>
           )}
 
