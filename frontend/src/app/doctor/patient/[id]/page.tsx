@@ -121,11 +121,6 @@ export default function PatientDetailsPage() {
       }
     } catch (error: any) {
       console.error("Error viewing document:", error);
-      alert(
-        `Error opening document: ${document.name}. ${
-          error.message || "Please try again later."
-        }`
-      );
     } finally {
       setLoadingDocumentId(null);
     }

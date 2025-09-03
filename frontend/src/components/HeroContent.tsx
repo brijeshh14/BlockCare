@@ -46,10 +46,10 @@ const HeroContent = () => {
       <p className="text-foreground/50 text-xs">SignUp required</p>
 
       <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-6 text-foreground/60 text-xs sm:text-sm">
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>HIPAA‑ready encryption</span>
-        </div>
+        </div> */}
         <div className="flex items-center gap-2">
           <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>Patient‑controlled consent</span>
