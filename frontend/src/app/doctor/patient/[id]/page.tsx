@@ -64,7 +64,7 @@ export default function PatientDetailsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push("/login/doctor");
+      router.push("/doctor/login");
       return;
     }
 

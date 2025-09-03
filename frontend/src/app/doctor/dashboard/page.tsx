@@ -51,7 +51,7 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push("/login/doctor");
+      router.push("/doctor/login");
       return;
     }
 
@@ -149,7 +149,7 @@ export default function DoctorDashboard() {
 
   const handleSignOut = () => {
     logout();
-    router.push("/login/doctor");
+    router.push("/doctor/login");
   };
 
   const handleDebugTest = async () => {

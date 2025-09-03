@@ -1,16 +1,17 @@
 "use client";
 import type React from "react";
 import { useState } from "react";
-import { User, Building2, ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Footer } from "@/components/ui/footer";
 
 interface RoleCardProps {
   title: string;
   description: string;
-  features: string[];
-  icon: React.ReactNode;
+  iconSrc: string;
+  iconAlt: string;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -18,19 +19,21 @@ interface RoleCardProps {
 const RoleCard: React.FC<RoleCardProps> = ({
   title,
   description,
-  features,
-  icon,
+  iconSrc,
+  iconAlt,
   isSelected,
   onClick,
 }) => {
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border bg-card shadow-md transition-all duration-300 transform
+      className={`cursor-pointer rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-10 border shadow-md transition-all duration-300 transform
         ${
           isSelected
-            ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg scale-[1.02]"
-            : "border-border hover:shadow-lg hover:scale-[1.02]"
+            ? `border-primary shadow-lg ${
+                iconAlt === "Patient icon" ? "scale-[1.03]" : "scale-[1.02]"
+              }`
+            : "border-border bg-[#20202a] hover:shadow-lg hover:scale-[1.02]"
         }
       `}
       tabIndex={0}
@@ -43,27 +46,32 @@ const RoleCard: React.FC<RoleCardProps> = ({
         }
       }}
     >
-      <div className="flex justify-center mb-4 sm:mb-6">
-        <div className="h-16 w-16 sm:h-20 sm:w-20 flex items-center justify-center rounded-xl bg-muted shadow-inner">
-          <div className="text-muted-foreground">{icon}</div>
+      <div className="flex justify-center mb-5 sm:mb-8">
+        <div
+          className={`flex items-center justify-center rounded-2xl  relative
+          ${
+            iconAlt === "Patient icon"
+              ? "h-44 w-44 sm:h-56 sm:w-56"
+              : "h-36 w-36 sm:h-48 sm:w-48"
+          }`}
+        >
+          <Image
+            src={iconSrc}
+            alt={iconAlt}
+            fill
+            className={`object-contain ${
+              iconAlt === "Patient icon" ? "p-2" : "p-3"
+            }`}
+          />
         </div>
       </div>
 
-      <h3 className="text-xl sm:text-2xl font-bold text-center mb-2 sm:mb-3 text-foreground">
+      <h3 className="text-3xl sm:text-4xl font-bold text-center mb-3 sm:mb-4 text-white">
         {title}
       </h3>
-      <p className="text-xs sm:text-sm text-center text-muted-foreground mb-3 sm:mb-5 leading-relaxed">
+      <p className="text-base sm:text-lg text-center text-gray-300">
         {description}
       </p>
-
-      <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
-        {features.map((feature, i) => (
-          <li key={i} className="flex items-center gap-2 text-foreground">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };
@@ -79,28 +87,16 @@ const LoginPage: React.FC = () => {
     {
       key: "patient" as const,
       title: "Patient",
-      description:
-        "Access your medical records and manage your health data securely.",
-      features: [
-        "View medical history",
-        "Manage data permissions",
-        "Track consent status",
-        "Secure verification",
-      ],
-      icon: <User className="h-8 w-8 sm:h-10 sm:w-10" />,
+      description: "Access your medical records securely.",
+      iconSrc: "/patient.png",
+      iconAlt: "Patient icon",
     },
     {
       key: "hospital" as const,
       title: "Medical Professional",
-      description:
-        "Manage patient records with enterprise-grade security and compliance.",
-      features: [
-        "Update patient records",
-        "Access authorized data",
-        "Manage staff permissions",
-        "Audit trails",
-      ],
-      icon: <Building2 className="h-8 w-8 sm:h-10 sm:w-10" />,
+      description: "Manage patient records securely.",
+      iconSrc: "/doctor.png",
+      iconAlt: "Doctor icon",
     },
   ];
 
@@ -120,11 +116,11 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col">
       <header className="p-4 sm:p-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           Back to Home
@@ -133,24 +129,23 @@ const LoginPage: React.FC = () => {
 
       <main className="px-4 py-6 sm:py-8 md:py-12 flex-grow">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8 sm:mb-10 md:mb-14">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-foreground mb-2 sm:mb-4">
+          <div className="text-center mb-8 sm:mb-10">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">
               Choose Your Role
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-              Access BlockCare's secure healthcare platform designed for both
-              patients and healthcare providers.
+            <p className="text-sm sm:text-base text-gray-400 max-w-xl mx-auto">
+              Access BlockCare's secure healthcare platform
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-10 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 md:gap-10 mb-8 sm:mb-12 max-w-4xl mx-auto">
             {roles.map((role) => (
               <RoleCard
                 key={role.key}
                 title={role.title}
                 description={role.description}
-                features={role.features}
-                icon={role.icon}
+                iconSrc={role.iconSrc}
+                iconAlt={role.iconAlt}
                 isSelected={selectedRole === role.key}
                 onClick={() => setSelectedRole(role.key)}
               />
@@ -162,14 +157,14 @@ const LoginPage: React.FC = () => {
               <button
                 onClick={handleContinue}
                 disabled={isLoading}
-                className="px-5 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl bg-primary text-secondary font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full sm:w-auto shadow-md text-sm sm:text-base"
+                className="px-8 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0095ff] text-white font-medium hover:bg-[#0084e2] disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full sm:w-auto shadow-md text-base sm:text-lg"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mx-auto" />
                 ) : (
                   <span>
                     Continue as{" "}
-                    {selectedRole === "patient" ? "Patient" : "Hospital"}
+                    {selectedRole === "patient" ? "Patient" : "Doctor"}
                   </span>
                 )}
               </button>
