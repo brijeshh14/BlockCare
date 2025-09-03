@@ -94,7 +94,7 @@ const LoginPage: React.FC = () => {
     {
       key: "hospital" as const,
       title: "Medical Professional",
-      description: "Manage patient records securely.",
+      description: "Quick access to patient records.",
       iconSrc: "/doctor.png",
       iconAlt: "Doctor icon",
     },
