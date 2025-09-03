@@ -13,7 +13,7 @@ persistent actor MedicalRecords {
 
   stable var records: [PatientMetadata] = [];
 
- public shared func storeRecord(patientId: Text, ipfsCid: Text, recordHash: Text, accessControl: [Text]) : async () {
+  public shared func storeRecord(patientId: Text, ipfsCid: Text, recordHash: Text, accessControl: [Text]) : async () {
     let timestamp = Time.now();
     let metadata: PatientMetadata = {
       patientId = patientId;
@@ -25,10 +25,12 @@ persistent actor MedicalRecords {
     records := Array.append(records, [metadata]);
   };
 
-  public query func getRecord(patientId: Text) : async ?PatientMetadata {
-    switch (Array.find(records, func(r: PatientMetadata) : Bool { r.patientId == patientId })) {
-      case (?record) { ?record };
-      case null { null };
-    }
+  public query func getRecords(patientId: Text) : async [PatientMetadata] {
+    Array.filter<PatientMetadata>(
+      records,
+      func(r: PatientMetadata) : Bool {
+        r.patientId == patientId
+      }
+    )
   };
 };
