@@ -252,10 +252,9 @@ const PatientLoginPage: React.FC = () => {
             </div>
           </div>
 
-          {/* DigiLocker Login Option */}
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <div className="text-center mb-4">
-              <div className="mx-auto w-16 h-16 mb-3 relative">
+            {/* <div className="text-center mb-4"> */}
+            {/* <div className="mx-auto w-16 h-16 mb-3 relative">
                 <Image
                   src="/icons/digilocker.svg"
                   alt="DigiLocker"
@@ -263,17 +262,17 @@ const PatientLoginPage: React.FC = () => {
                   height={64}
                   className="mx-auto"
                 />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">
+              </div> */}
+            {/* <h3 className="text-lg font-semibold text-foreground">
                 Login with DigiLocker
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Securely access your medical records using your DigiLocker
                 account
-              </p>
-            </div>
+              </p> */}
+            {/* </div> */}
 
-            <button
+            {/* <button
               onClick={handleDigiLockerLogin}
               disabled={digilockerLoading}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
@@ -286,14 +285,13 @@ const PatientLoginPage: React.FC = () => {
                   <ExternalLink className="h-4 w-4" />
                 </>
               )}
-            </button>
+            </button> */}
 
-            <p className="mt-3 text-xs text-center text-muted-foreground">
+            {/* <p className="mt-3 text-xs text-center text-muted-foreground">
               You will be redirected to DigiLocker for secure authentication
-            </p>
+            </p> */}
           </div>
 
-          {/* Registration Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}

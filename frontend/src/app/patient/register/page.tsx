@@ -539,7 +539,7 @@ const PatientRegisterPage: React.FC = () => {
           </div>
 
           {/* DigiLocker Registration Option */}
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+          {/* <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
             <div className="text-center mb-4">
               <div className="mx-auto w-16 h-16 mb-3 relative">
                 <Image
@@ -557,8 +557,8 @@ const PatientRegisterPage: React.FC = () => {
                 Automatically create your account using verified DigiLocker
                 credentials
               </p>
-            </div>
-
+            </div> */}
+          {/* 
             <button
               onClick={handleDigiLockerRegister}
               disabled={digilockerLoading}
@@ -572,12 +572,12 @@ const PatientRegisterPage: React.FC = () => {
                   <ExternalLink className="h-4 w-4" />
                 </>
               )}
-            </button>
-
+            </button> */}
+          {/* 
             <p className="mt-3 text-xs text-center text-muted-foreground">
               Your personal information will be securely fetched from DigiLocker
-            </p>
-          </div>
+            </p> */}
+          {/* </div> */}
         </div>
       </main>
 

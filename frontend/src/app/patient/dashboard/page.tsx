@@ -236,7 +236,7 @@ const PatientDashboard: React.FC = () => {
       connectionResult.database &&
       connectionResult.storage
     ) {
-      setSuccessMessage("✅ All Supabase services are working correctly!");
+      setSuccessMessage("All Supabase services are working correctly!");
     } else {
       setError(
         `❌ Some services failed: ${JSON.stringify(connectionResult.details)}`

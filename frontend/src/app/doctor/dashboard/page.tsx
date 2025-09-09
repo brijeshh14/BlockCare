@@ -4,26 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDoctorAuth } from "@/hooks/supabase/useDoctorAuth";
 import { doctorService, patientService } from "@/lib/supabase/database";
-import {
-  testDatabaseConnection,
-  createTestPatient,
-  listAllPatients,
-} from "@/lib/supabase/test-db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Search,
   Users,
   Clock,
   Stethoscope,
   User,
-  Calendar,
   LogOut,
   AlertCircle,
   ChevronRight,
-  Database,
 } from "lucide-react";
 
 interface Patient {
@@ -47,8 +40,6 @@ export default function DoctorDashboard() {
   const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string>("");
-
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/doctor/login");
@@ -152,27 +143,8 @@ export default function DoctorDashboard() {
     router.push("/doctor/login");
   };
 
-  const handleDebugTest = async () => {
-    setDebugInfo("Running debug tests...");
-
-    // Test database connection
-    const isConnected = await testDatabaseConnection();
-    setDebugInfo((prev) => prev + `\nDatabase connected: ${isConnected}`);
-
-    // List all patients
-    const patients = await listAllPatients();
-    setDebugInfo(
-      (prev) => prev + `\nFound ${patients.length} patients in database`
-    );
-
-    // Create test patient
-    if (patients.length === 0) {
-      const testPatient = await createTestPatient();
-      setDebugInfo(
-        (prev) =>
-          prev + `\nCreated test patient: ${testPatient ? "Success" : "Failed"}`
-      );
-    }
+  const handleProfileClick = () => {
+    router.push("/doctor/profile");
   };
 
   if (loading) {
@@ -195,7 +167,7 @@ export default function DoctorDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border shadow-sm">
+      <header className="bg-card shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
@@ -204,7 +176,7 @@ export default function DoctorDashboard() {
               </div>
               <div className="flex flex-col">
                 <h1 className="text-2xl font-bold text-card-foreground tracking-tight">
-                  Medical Dashboard
+                  Patient Dashboard
                 </h1>
                 <p className="text-sm text-muted-foreground font-medium">
                   Welcome back, Dr. {doctor.name}
@@ -212,20 +184,17 @@ export default function DoctorDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center space-x-6">
-              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 rounded-lg bg-accent/10 border border-border/50">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-4 w-4 text-primary" />
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleProfileClick}
+                className="h-12 w-12 rounded-full p-0 hover:bg-accent"
+              >
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors">
+                  <User className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-card-foreground">
-                    {doctor.name}
-                  </span>
-                  <Badge variant="secondary" className="text-xs w-fit">
-                    {doctor.specialty || "Doctor"}
-                  </Badge>
-                </div>
-              </div>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -242,23 +211,10 @@ export default function DoctorDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Welcome Section */}
-        <div className="mb-10">
-          <div className="text-center sm:text-left">
-            <h2 className="text-3xl font-bold text-card-foreground mb-2">
-              Patient Management
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl">
-              Access patient records securely and manage your medical practice
-              efficiently.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        <div className="space-y-8">
           {/* Patient Search Section */}
-          <div className="xl:col-span-3">
-            <Card className="shadow-md">
+          <div>
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200">
               <CardHeader className="pb-6">
                 <CardTitle className="flex items-center space-x-3 text-xl">
                   <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -300,13 +256,13 @@ export default function DoctorDashboard() {
                   </div>
 
                   {error && (
-                    <div className="flex items-start space-x-3 text-sm text-destructive-foreground bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+                    <div className="flex items-start space-x-3 text-sm text-destructive-foreground bg-destructive/10 p-4 rounded-lg shadow-md">
                       <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                       <span className="font-medium">{error}</span>
                     </div>
                   )}
 
-                  <div className="bg-muted/30 p-4 rounded-lg border border-border/50">
+                  <div className="bg-muted/30 p-4 rounded-lg shadow-sm">
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       <strong className="text-card-foreground">
                         How to search:
@@ -316,95 +272,19 @@ export default function DoctorDashboard() {
                       encrypted and access is logged for security.
                     </p>
                   </div>
-
-                  {/* Debug Section */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                        Debug Tools (Development Only)
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDebugTest}
-                        className="text-xs"
-                      >
-                        <Database className="h-3 w-3 mr-1" />
-                        Test DB
-                      </Button>
-                    </div>
-                    {debugInfo && (
-                      <pre className="text-xs text-yellow-700 dark:text-yellow-300 whitespace-pre-wrap">
-                        {debugInfo}
-                      </pre>
-                    )}
-                  </div>
                 </form>
               </CardContent>
             </Card>
           </div>
 
-          {/* Doctor Info Panel */}
-          <div className="xl:col-span-1">
-            <Card className="shadow-md h-fit sticky top-8">
-              <CardHeader className="pb-6">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <span>Doctor Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Full Name
-                    </label>
-                    <p className="text-base font-medium text-card-foreground">
-                      {doctor.name}
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Specialty
-                    </label>
-                    <p className="text-base font-medium text-card-foreground">
-                      {doctor.specialty || "Medical Professional"}
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Experience
-                    </label>
-                    <p className="text-base font-medium text-card-foreground">
-                      {doctor.experience || "Not specified"}
-                    </p>
-                  </div>
-                  <div className="flex flex-col space-y-1">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Hospital/Clinic
-                    </label>
-                    <p className="text-base font-medium text-card-foreground">
-                      {doctor.hospital || "Not specified"}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Recent Patients */}
-        <section className="mt-12">
-          <Card className="shadow-md">
+          {/* Recent Patients */}
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-200">
             <CardHeader className="pb-6">
               <CardTitle className="flex items-center space-x-3 text-xl">
                 <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Clock className="h-5 w-5 text-primary" />
                 </div>
-                <span>Recent Patients</span>
+                <span>Patient List</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -414,7 +294,7 @@ export default function DoctorDashboard() {
                     <Users className="h-10 w-10 text-muted-foreground" />
                   </div>
                   <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                    No recent patients
+                    No patients found
                   </h3>
                   <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
                     Patient records will appear here after you access them.
@@ -424,11 +304,11 @@ export default function DoctorDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {recentPatients.map((recentPatient, index) => (
+                  {recentPatients.map((recentPatient) => (
                     <div
                       key={recentPatient.patient_id}
                       onClick={() => handlePatientSelect(recentPatient)}
-                      className="group flex items-center justify-between p-6 border border-border rounded-xl hover:bg-accent/30 hover:border-accent cursor-pointer transition-all duration-200 hover:shadow-md"
+                      className="group flex items-center justify-between p-6 bg-card shadow-sm rounded-xl hover:bg-accent/30 hover:shadow-lg cursor-pointer transition-all duration-200"
                     >
                       <div className="flex items-center space-x-4">
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -470,7 +350,7 @@ export default function DoctorDashboard() {
               )}
             </CardContent>
           </Card>
-        </section>
+        </div>
       </main>
     </div>
   );

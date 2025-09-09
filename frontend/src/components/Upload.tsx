@@ -588,7 +588,6 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                {/*                 
                 {showSupabaseUpload && patientId && (
                   <Button
                     onClick={handleUpload}
@@ -604,12 +603,11 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                     ) : (
                       <>
                         <Upload className="h-4 w-4 mr-2" />
-                        Upload to Database
+                        Upload
                       </>
                     )}
                   </Button>
                 )}
-                 */}
 
                 {/* IPFS Upload Button */}
                 {showIPFSUpload && (
@@ -628,7 +626,7 @@ const UploadComponent: React.FC<UploadComponentProps> = ({
                     ) : (
                       <>
                         <Cloud className="h-4 w-4 mr-2" />
-                        Upload to IPFS
+                        Upload
                       </>
                     )}
                   </Button>
