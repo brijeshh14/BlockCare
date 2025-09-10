@@ -389,7 +389,7 @@ const PatientRegisterPage: React.FC = () => {
                     onChange={(e) =>
                       handleInputChange("gender", e.target.value)
                     }
-                    className="w-full px-3 py-2 bg-transparent outline-none text-foreground"
+                    className="w-full px-3 py-2 bg-black outline-none text-foreground"
                     required
                   >
                     <option value="">Select gender</option>
@@ -412,7 +412,7 @@ const PatientRegisterPage: React.FC = () => {
                     onChange={(e) =>
                       handleInputChange("bloodType", e.target.value)
                     }
-                    className="w-full bg-transparent outline-none text-foreground"
+                    className="w-full bg-black outline-none text-foreground"
                     required
                   >
                     <option value="">Select blood type</option>
