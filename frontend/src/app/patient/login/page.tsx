@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowLeft,
   Mail,
   Shield,
   Eye,
   EyeOff,
-  ExternalLink,
+  Loader2,
   CheckCircle2,
   UserPlus,
 } from "lucide-react";
@@ -33,6 +32,9 @@ const PatientLoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+
   // Check for registration success message
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -50,11 +52,13 @@ const PatientLoginPage: React.FC = () => {
 
     if (!isValidEmail(email)) {
       setError("Please enter a valid email address");
+      emailRef.current?.focus();
       return;
     }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
+      passwordRef.current?.focus();
       return;
     }
 
@@ -168,6 +172,9 @@ const PatientLoginPage: React.FC = () => {
               <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <input
+                  ref={emailRef}
+                  autoFocus
+                  disabled={loading}
                   type="email"
                   value={email}
                   onChange={(e) => {
@@ -189,6 +196,8 @@ const PatientLoginPage: React.FC = () => {
               <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
                 <Shield className="h-4 w-4 text-muted-foreground" />
                 <input
+                  ref={passwordRef}
+                  disabled={loading}
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => {
@@ -196,12 +205,15 @@ const PatientLoginPage: React.FC = () => {
                     setError(null);
                   }}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={loading}
                   className="p-1 hover:bg-muted rounded transition-colors"
                 >
                   {showPassword ? (
@@ -215,7 +227,11 @@ const PatientLoginPage: React.FC = () => {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <div
+                className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20"
+                role="alert"
+                aria-live="assertive"
+              >
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
@@ -224,9 +240,16 @@ const PatientLoginPage: React.FC = () => {
             <button
               type="submit"
               disabled={!isFormValid() || loading}
-              className="w-full mb-4 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
+              className="w-full mb-4 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center"
             >
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                "Sign In"
+              )}
             </button>
 
             {/* Forgot Password */}
@@ -241,7 +264,7 @@ const PatientLoginPage: React.FC = () => {
           </form>
 
           {/* OR Divider */}
-          <div className="relative mb-6">
+          {/* <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border"></div>
             </div>
@@ -250,11 +273,11 @@ const PatientLoginPage: React.FC = () => {
                 OR
               </span>
             </div>
-          </div>
+          </div> */}
 
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            {/* <div className="text-center mb-4"> */}
-            {/* <div className="mx-auto w-16 h-16 mb-3 relative">
+          {/* <div className="rounded-2xl border border-border bg-card p-6 shadow-sm"> */}
+          {/* <div className="text-center mb-4"> */}
+          {/* <div className="mx-auto w-16 h-16 mb-3 relative">
                 <Image
                   src="/icons/digilocker.svg"
                   alt="DigiLocker"
@@ -263,16 +286,16 @@ const PatientLoginPage: React.FC = () => {
                   className="mx-auto"
                 />
               </div> */}
-            {/* <h3 className="text-lg font-semibold text-foreground">
+          {/* <h3 className="text-lg font-semibold text-foreground">
                 Login with DigiLocker
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 Securely access your medical records using your DigiLocker
                 account
               </p> */}
-            {/* </div> */}
+          {/* </div> */}
 
-            {/* <button
+          {/* <button
               onClick={handleDigiLockerLogin}
               disabled={digilockerLoading}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
@@ -287,10 +310,10 @@ const PatientLoginPage: React.FC = () => {
               )}
             </button> */}
 
-            {/* <p className="mt-3 text-xs text-center text-muted-foreground">
+          {/* <p className="mt-3 text-xs text-center text-muted-foreground">
               You will be redirected to DigiLocker for secure authentication
             </p> */}
-          </div>
+          {/* </div> */}
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">

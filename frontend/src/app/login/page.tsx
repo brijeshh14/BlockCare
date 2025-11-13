@@ -1,7 +1,7 @@
 "use client";
 import type React from "react";
 import { useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -80,7 +80,6 @@ const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<
     "patient" | "hospital" | null
   >(null);
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const roles = [
@@ -100,20 +99,8 @@ const LoginPage: React.FC = () => {
     },
   ];
 
-  const handleContinue = async () => {
-    if (!selectedRole) return;
-    setIsLoading(true);
-
-    try {
-      await new Promise((res) => setTimeout(res, 1500));
-      router.push(
-        selectedRole === "patient" ? "/patient/login" : "/doctor/login"
-      );
-    } catch (error) {
-      console.error("Navigation failed:", error);
-      setIsLoading(false);
-    }
-  };
+  // Navigation is handled directly when a role card is clicked.
+  // Removed the previous `handleContinue` which referenced a missing `setIsLoading` state.
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
@@ -147,29 +134,17 @@ const LoginPage: React.FC = () => {
                 iconSrc={role.iconSrc}
                 iconAlt={role.iconAlt}
                 isSelected={selectedRole === role.key}
-                onClick={() => setSelectedRole(role.key)}
+                onClick={() => {
+                  // mark selection (not strictly necessary since we'll navigate)
+                  setSelectedRole(role.key);
+                  // navigate immediately to the corresponding login page
+                  router.push(
+                    role.key === "patient" ? "/patient/login" : "/doctor/login"
+                  );
+                }}
               />
             ))}
           </div>
-
-          {selectedRole && (
-            <div className="flex justify-center">
-              <button
-                onClick={handleContinue}
-                disabled={isLoading}
-                className="px-8 sm:px-10 py-3 sm:py-4 rounded-full bg-[#0095ff] text-white font-medium hover:bg-[#0084e2] disabled:opacity-50 disabled:cursor-not-allowed transition-all w-full sm:w-auto shadow-md text-base sm:text-lg"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mx-auto" />
-                ) : (
-                  <span>
-                    Continue as{" "}
-                    {selectedRole === "patient" ? "Patient" : "Doctor"}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
         </div>
       </main>
 

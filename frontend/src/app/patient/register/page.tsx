@@ -383,13 +383,16 @@ const PatientRegisterPage: React.FC = () => {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Gender *
                 </label>
-                <div className="rounded-lg border border-border bg-background">
+                {/* Match other inputs: include icon + padded flex wrapper so styling is consistent */}
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 relative z-50">
+                  <User className="h-4 w-4 text-muted-foreground" />
                   <select
                     value={formData.gender}
                     onChange={(e) =>
                       handleInputChange("gender", e.target.value)
                     }
-                    className="w-full px-3 py-2 bg-transparent outline-none text-foreground"
+                    className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                    aria-label="Gender"
                     required
                   >
                     <option value="">Select gender</option>
@@ -405,14 +408,16 @@ const PatientRegisterPage: React.FC = () => {
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Blood Type *
                 </label>
-                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+                {/* Match other inputs: icon + padded flex wrapper */}
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 relative z-50">
                   <Droplets className="h-4 w-4 text-muted-foreground" />
                   <select
                     value={formData.bloodType}
                     onChange={(e) =>
                       handleInputChange("bloodType", e.target.value)
                     }
-                    className="w-full bg-transparent outline-none text-foreground"
+                    className="w-full bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
+                    aria-label="Blood Type"
                     required
                   >
                     <option value="">Select blood type</option>

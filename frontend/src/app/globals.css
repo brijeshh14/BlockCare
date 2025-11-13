@@ -256,3 +256,40 @@ body{
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
+
+/*
+  Force native select dropdowns to use dark / high-contrast styling where
+  the browser allows it. Some browsers render native option popups in the
+  OS UI and will ignore these styles; for full control consider replacing
+  with a custom dropdown rendered in a portal.
+*/
+select,
+select option,
+select optgroup {
+  background-color: var(--popover, #000) !important;
+  color: var(--popover-foreground, #fff) !important;
+}
+
+/* Make the select control itself dark and remove native chrome where we
+   already use a custom arrow via Tailwind's appearance-none */
+select {
+  background-color: transparent; /* keep control background matching inputs */
+  color: var(--popover-foreground, #fff) !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  /* make the select corners match other inputs (rounded-lg) */
+  border-radius: 0.5rem !important; /* matches Tailwind rounded-lg */
+}
+
+/* Ensure focused selects render above overlays in browsers that respect z-index */
+select:focus {
+  position: relative;
+  z-index: 9999;
+}
+
+/* Styling for the selected option (works in some browsers) */
+option:checked {
+  background-color: var(--primary, #111) !important;
+  color: var(--primary-foreground, #fff) !important;
+}
